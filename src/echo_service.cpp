@@ -85,15 +85,21 @@ auto tcp_service::operator()(async_context &ctx, const socket_dialog &socket,
   static auto BUF = std::array<char, INET6_ADDRSTRLEN + BUFSIZE>{};
 
   auto sockfd = static_cast<native_socket_type>(*socket.socket);
-  if (rctx && !active_.contains(sockfd))
+  if (sockfd != INVALID_SOCKET &&
+      active_.size() < static_cast<std::size_t>(sockfd) + 1)
   {
-    active_.emplace(sockfd);
+    active_.resize(sockfd + 1);
+  }
+
+  if (rctx && sockfd != INVALID_SOCKET && !active_[sockfd])
+  {
+    active_[sockfd] = true;
     spdlog::info("New TCP connection from {}.", getpeername(socket, BUF));
   }
 
-  if (!rctx && active_.contains(sockfd))
+  if (!rctx && sockfd != INVALID_SOCKET && active_[sockfd])
   {
-    active_.erase(sockfd);
+    active_[sockfd] = false;
     spdlog::info("End TCP connection from {}.", getpeername(socket, BUF));
   }
 

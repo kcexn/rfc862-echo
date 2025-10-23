@@ -21,8 +21,6 @@
 #ifndef ECHO_SERVICE_HPP
 #define ECHO_SERVICE_HPP
 #include <net/service/async_tcp_service.hpp>
-
-#include <set>
 /** @namespace For echo services. */
 namespace echo {
 /** @brief The service type to use. */
@@ -35,7 +33,7 @@ public:
   /** @brief The base class. */
   using Base = service_base<tcp_service>;
   /** @brief A connections type. */
-  using connections = std::set<io::socket::native_socket_type>;
+  using connections = std::vector<bool>;
   /** @brief The socket message type. */
   using socket_message = io::socket::socket_message<>;
   /**
@@ -74,7 +72,10 @@ public:
                   std::span<const std::byte> buf) -> void;
 
 private:
-  connections active_;
+  /** @brief Initial active_ size. */
+  static constexpr auto NCONN = 1024UL;
+  /** @brief Active connections. */
+  connections active_{connections(NCONN, false)};
 };
 } // namespace echo
 #endif // ECHO_SERVICE_HPP
