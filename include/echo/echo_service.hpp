@@ -72,10 +72,8 @@ public:
                   std::span<const std::byte> buf) -> void;
 
 private:
-  /** @brief Initial active_ size. */
-  static constexpr auto NCONN = 1024UL;
   /** @brief Active connections. */
-  connections active_{connections(NCONN, false)};
+  connections active_;
 };
 } // namespace echo
 #endif // ECHO_SERVICE_HPP

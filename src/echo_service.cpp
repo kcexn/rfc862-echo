@@ -71,7 +71,7 @@ static auto getpeername(const tcp_service::socket_dialog &socket,
   auto [ptr, err] =
       std::to_chars(buf.data() + len, buf.data() + buf.size(), port);
   if (err != std::errc{})
-    return {};
+    return {}; // GCOVR_EXCL_LINE
 
   return {address};
 }
