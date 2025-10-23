@@ -61,17 +61,29 @@ static auto getpeername(const tcp_service::socket_dialog &socket,
 
   auto addr = socket_address<sockaddr_in6>();
   auto span = io::getpeername(socket, addr);
-  const char *address =
-      inet_ntop(addr->sin6_family, span.data(), buf.data(), span.size());
+  const char *address = nullptr;
+  unsigned short port = 0;
+  if (addr->sin6_family == AF_INET)
+  {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    const auto *addr = reinterpret_cast<const sockaddr_in *>(span.data());
+    address =
+        inet_ntop(addr->sin_family, &addr->sin_addr, buf.data(), buf.size());
+    port = ntohs(addr->sin_port);
+  }
+  else
+  {
+    address =
+        inet_ntop(addr->sin6_family, &addr->sin6_addr, buf.data(), buf.size());
+    port = ntohs(addr->sin6_port);
+  }
   auto len = std::strlen(address);
-
-  unsigned short port = ntohs(addr->sin6_port);
 
   buf[len++] = ':';
   auto [ptr, err] =
       std::to_chars(buf.data() + len, buf.data() + buf.size(), port);
   if (err != std::errc{})
-    return {}; // GCOVR_EXCL_LINE
+    return {};
 
   return {address};
 }
