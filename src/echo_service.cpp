@@ -58,11 +58,12 @@ static auto getpeername(const tcp_service::socket_dialog &socket,
 {
   using namespace io::socket;
   std::memset(buf.data(), 0, buf.size());
+  const char *address = nullptr;
+  unsigned short port = 0;
+  std::size_t len = 0;
 
   auto addr = socket_address<sockaddr_in6>();
   auto span = io::getpeername(socket, addr);
-  const char *address = nullptr;
-  unsigned short port = 0;
   if (addr->sin6_family == AF_INET)
   {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -70,14 +71,17 @@ static auto getpeername(const tcp_service::socket_dialog &socket,
     address =
         inet_ntop(addr->sin_family, &addr->sin_addr, buf.data(), buf.size());
     port = ntohs(addr->sin_port);
+    len = std::strlen(address);
   }
   else
   {
+    buf[0] = '[';
     address =
-        inet_ntop(addr->sin6_family, &addr->sin6_addr, buf.data(), buf.size());
+        inet_ntop(addr->sin6_family, &addr->sin6_addr, buf.data()+1, buf.size()-1);
     port = ntohs(addr->sin6_port);
+    len = std::strlen(buf.data());
+    buf[len++] = ']';
   }
-  auto len = std::strlen(address);
 
   buf[len++] = ':';
   auto [ptr, err] =
