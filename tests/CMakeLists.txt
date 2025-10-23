@@ -3,6 +3,8 @@ include(GoogleTest)
 set(TEST_NAMES
   test_echo_service
   test_mock_sendmsg
+  test_generator
+  test_argument_parser
 )
 
 foreach(TEST_NAME IN LISTS TEST_NAMES)
