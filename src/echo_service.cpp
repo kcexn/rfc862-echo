@@ -18,6 +18,13 @@
  * @brief This file defines the segment service.
  */
 #include "echo/echo_service.hpp"
+
+#include <spdlog/spdlog.h>
+
+#include <charconv>
+#include <string_view>
+
+#include <arpa/inet.h>
 namespace echo {
 
 auto tcp_service::initialize(const socket_handle &sock) noexcept
@@ -46,10 +53,50 @@ auto tcp_service::service(async_context &ctx, const socket_dialog &socket,
   ctx.scope.spawn(std::move(sendmsg));
 }
 
+static auto getpeername(const tcp_service::socket_dialog &socket,
+                        std::span<char> buf) -> std::string_view
+{
+  using namespace io::socket;
+  std::memset(buf.data(), 0, buf.size());
+
+  auto addr = socket_address<sockaddr_in6>();
+  auto span = io::getpeername(socket, addr);
+  const char *address =
+      inet_ntop(addr->sin6_family, span.data(), buf.data(), span.size());
+  auto len = std::strlen(address);
+
+  unsigned short port = ntohs(addr->sin6_port);
+
+  buf[len++] = ':';
+  auto [ptr, err] =
+      std::to_chars(buf.data() + len, buf.data() + buf.size(), port);
+  if (err != std::errc{})
+    return {};
+
+  return {address};
+}
+
 auto tcp_service::operator()(async_context &ctx, const socket_dialog &socket,
                              const std::shared_ptr<read_context> &rctx,
                              std::span<const std::byte> buf) -> void
 {
+  using namespace io::socket;
+  static constexpr auto BUFSIZE = 6UL;
+  static auto BUF = std::array<char, INET6_ADDRSTRLEN + BUFSIZE>{};
+
+  auto sockfd = static_cast<native_socket_type>(*socket.socket);
+  if (rctx && !active_.contains(sockfd))
+  {
+    active_.emplace(sockfd);
+    spdlog::info("New TCP connection from {}.", getpeername(socket, BUF));
+  }
+
+  if (!rctx && active_.contains(sockfd))
+  {
+    active_.erase(sockfd);
+    spdlog::info("End TCP connection from {}.", getpeername(socket, BUF));
+  }
+
   service(ctx, socket, rctx, {.buffers = buf});
 }
 

@@ -30,6 +30,7 @@ CPMAddPackage(
   "IO_BUILD_EXAMPLES OFF"
 )
 
+# Add cppnet as a dependency.
 CPMAddPackage(
   NAME cppnet
   GITHUB_REPOSITORY kcexn/cloudbus-net
@@ -39,12 +40,20 @@ CPMAddPackage(
   "CPPNET_BUILD_TESTING OFF"
 )
 
+# Add spdlog as a dependency.
+CPMAddPackage(
+  NAME spdlog
+  GITHUB_REPOSITORY gabime/spdlog
+  GIT_TAG v1.16.0
+)
+
 # Include directories for build and distribution.
 set(INCLUDE_DIRS
   "${CMAKE_SOURCE_DIR}/include/"
   "${CMAKE_BINARY_DIR}/_deps/stdexec-src/include/"
   "${CMAKE_BINARY_DIR}/_deps/asyncberkeley-src/include/"
   "${CMAKE_BINARY_DIR}/_deps/cppnet-src/include/"
+  "${CMAKE_BINARY_DIR}/_deps/spdlog-src/include/"
 )
 
 # Enable testing by default if this is a top-level project or

@@ -1,6 +1,10 @@
 #include "echo/detail/argument_parser.hpp"
 #include "echo/echo_service.hpp"
 
+#include <spdlog/common-inl.h>
+#include <spdlog/common.h>
+#include <spdlog/spdlog.h>
+
 #include <charconv>
 #include <condition_variable>
 #include <csignal>
@@ -15,7 +19,8 @@ using namespace echo;
 using service_type = async_service<tcp_service>;
 
 static constexpr unsigned short PORT = 7;
-static constexpr char const *const usage = "usage: {} [<port>]\n";
+static constexpr char const *const usage =
+    "usage: {} [--log-level <LEVEL>] [<PORT>]\n";
 
 static auto signal_mask() -> sigset_t *
 {
@@ -72,6 +77,35 @@ struct config {
   unsigned short port = PORT;
 };
 
+static auto set_loglevel(std::string_view value) -> int
+{
+  auto level = std::string(value);
+  // NOLINTNEXTLINE(readability-identifier-length)
+  std::ranges::transform(level, level.begin(),
+                         [](unsigned char ch) { return std::tolower(ch); });
+
+  auto spdlog_level = spdlog::level::from_str(level);
+  if (spdlog_level != spdlog::level::off || level == "off")
+  {
+    spdlog::set_level(spdlog_level);
+    return 0;
+  }
+
+  std::cerr << std::format("Unrecognized log level: {}\n", value)
+            << "Valid log levels are: ";
+  for (int i = 0; i < spdlog::level::n_levels; ++i)
+  {
+    if (i > 0)
+      std::cerr << ", ";
+
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+    const auto &level_str = spdlog::level::level_string_views[i];
+    std::cerr << std::string(level_str.begin(), level_str.end());
+  }
+  std::cerr << "\n";
+  return -1;
+}
+
 auto parse_args(int argc, char const *const *argv) -> std::optional<config>
 {
   using namespace echo::detail;
@@ -80,25 +114,34 @@ auto parse_args(int argc, char const *const *argv) -> std::optional<config>
   char const *const progname = std::filesystem::path(*argv).stem().c_str();
   for (const auto &option : argument_parser::parse(argc, argv))
   {
-    if (!option.flag.empty())
+    const auto &[flag, value] = option;
+    if (!flag.empty()) // options with flags.
     {
-      if (option.flag == "-h" || option.flag == "--help")
+      if (flag == "-h" || flag == "--help")
       {
         std::cout << std::format(usage, progname);
+        return std::nullopt;
       }
-      else
+
+      if (flag == "--log-level")
       {
-        std::cerr << std::format("Unrecognized flag: {}\n", option.flag)
-                  << std::format(usage, progname);
+        if (!set_loglevel(value))
+          continue;
+
+        std::cerr << std::format(usage, progname);
+        return std::nullopt;
       }
+
+      std::cerr << std::format("Unknown flag: {}\n", flag)
+                << std::format(usage, progname);
       return std::nullopt;
     }
 
-    auto [ptr, err] =
-        std::from_chars(option.value.cbegin(), option.value.cend(), conf.port);
+    // positional options.
+    auto [ptr, err] = std::from_chars(value.cbegin(), value.cend(), conf.port);
     if (err != std::errc{})
     {
-      std::cerr << std::format("Invalid port number: {}\n", option.value)
+      std::cerr << std::format("Invalid port number: {}\n", value)
                 << std::format(usage, progname);
       return std::nullopt;
     }
@@ -123,11 +166,13 @@ auto main(int argc, char *argv[]) -> int
     auto service = service_type{};
     auto sighandler = signal_handler(service);
 
+    spdlog::info("Echo server starting on TCP port {}.", conf->port);
     service.start(mtx, cvar, address);
 
     auto lock = std::unique_lock{mtx};
     cvar.wait(lock, [&] { return service.stopped.load(); });
   }
 
+  spdlog::info("Echo server stopped.");
   return 0;
 }

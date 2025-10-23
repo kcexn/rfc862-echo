@@ -21,6 +21,8 @@
 #ifndef ECHO_SERVICE_HPP
 #define ECHO_SERVICE_HPP
 #include <net/service/async_tcp_service.hpp>
+
+#include <set>
 /** @namespace For echo services. */
 namespace echo {
 /** @brief The service type to use. */
@@ -28,9 +30,12 @@ template <typename TCPStreamHandler>
 using service_base = net::service::async_tcp_service<TCPStreamHandler>;
 
 /** @brief The Cloudbus segment service. */
-struct tcp_service : public service_base<tcp_service> {
+class tcp_service : public service_base<tcp_service> {
+public:
   /** @brief The base class. */
   using Base = service_base<tcp_service>;
+  /** @brief A connections type. */
+  using connections = std::set<io::socket::native_socket_type>;
   /** @brief The socket message type. */
   using socket_message = io::socket::socket_message<>;
   /**
@@ -67,6 +72,9 @@ struct tcp_service : public service_base<tcp_service> {
   auto operator()(async_context &ctx, const socket_dialog &socket,
                   const std::shared_ptr<read_context> &rctx,
                   std::span<const std::byte> buf) -> void;
+
+private:
+  connections active_;
 };
 } // namespace echo
 #endif // ECHO_SERVICE_HPP
