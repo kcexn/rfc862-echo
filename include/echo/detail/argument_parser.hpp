@@ -26,13 +26,25 @@
 #include <string_view>
 /** @namespace For internal echo server implementation details. */
 namespace echo::detail {
+/** @brief A command line argument parser. */
 struct argument_parser {
+  /** @brief Command-line arguments are parsed into options. */
   struct option {
     std::string_view flag;
     std::string_view value;
   };
-
+  /**
+   * @brief Parse all command-line arguments.
+   * @param args The command line arguments to parse.
+   * @returns A generator of options.
+   */
   static auto parse(std::span<char const *const> args) -> generator<option>;
+  /**
+   * @brief Parse all command-line arguments.
+   * @param argc The number of command-line arguments.
+   * @param argv The command-line arguments.
+   * @returns A generator of options.
+   */
   static auto parse(int argc, char const *const *argv) -> generator<option>
   {
     return parse({argv, static_cast<std::size_t>(argc)});

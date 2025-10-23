@@ -24,7 +24,7 @@
 #include <exception>
 #include <iterator>
 #include <type_traits>
-/** @brief This namespace provides internal cloudbus implementation details. */
+/** @brief For internal echo server implementation details. */
 namespace echo::detail {
 /**
  * @brief A C++20 coroutine-based generator for creating iterable sequences.
