@@ -78,6 +78,9 @@ INSTANTIATE_TEST_SUITE_P(
         TestData{3,
                  new const char *[3]{"test", "--", "8080"},
                  {{"--", ""}, {"", "8080"}}},
+        TestData{3,
+                 new const char *[3]{"test", "8080", "-p"},
+                 {{"", "8080"}, {"-p", ""}}},
         TestData{5,
                  new const char *[5]{"test", "-v", "--ports", "8080", "8081"},
                  {{"-v", ""}, {"--ports", "8080"}, {"", "8081"}}}));

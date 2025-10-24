@@ -34,7 +34,7 @@ struct parser_impl {
       auto token = std::string_view(*current);
       if (token[0] == '-') // short option.
       {
-        if (!opt.flag.empty())
+        if (!opt.flag.empty() || !opt.value.empty())
           return opt;
 
         opt.flag = token;

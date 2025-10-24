@@ -76,8 +76,8 @@ static auto getpeername(const tcp_service::socket_dialog &socket,
   else
   {
     buf[0] = '[';
-    address =
-        inet_ntop(addr->sin6_family, &addr->sin6_addr, buf.data()+1, buf.size()-1);
+    address = inet_ntop(addr->sin6_family, &addr->sin6_addr, buf.data() + 1,
+                        buf.size() - 1);
     port = ntohs(addr->sin6_port);
     len = std::strlen(buf.data());
     buf[len++] = ']';
