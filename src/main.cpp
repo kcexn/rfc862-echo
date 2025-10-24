@@ -159,9 +159,9 @@ auto main(int argc, char *argv[]) -> int
     auto mtx = std::mutex{};
     auto cvar = std::condition_variable{};
 
-    auto address = socket_address<sockaddr_in>{};
-    address->sin_family = AF_INET;
-    address->sin_port = htons(conf->port);
+    auto address = socket_address<sockaddr_in6>{};
+    address->sin6_family = AF_INET6;
+    address->sin6_port = htons(conf->port);
 
     auto service = service_type{};
     auto sighandler = signal_handler(service);
