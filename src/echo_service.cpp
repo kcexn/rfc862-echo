@@ -27,6 +27,49 @@
 #include <arpa/inet.h>
 namespace echo {
 
+static inline auto getpeername_(const tcp_service::socket_dialog &socket,
+                                std::span<char> buf) -> std::string_view
+{
+  using namespace io::socket;
+  using io::getpeername;
+  using std::to_chars;
+
+  std::memset(buf.data(), 0, buf.size());
+  unsigned short port = 0;
+  std::size_t len = 0;
+
+  auto addr = socket_address<sockaddr_in6>();
+  auto span = getpeername(socket, addr);
+  if (!span.data())
+    return {};
+
+  if (addr->sin6_family == AF_INET)
+  {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    const auto *addr = reinterpret_cast<const sockaddr_in *>(span.data());
+    inet_ntop(addr->sin_family, &addr->sin_addr, buf.data(), buf.size());
+    port = ntohs(addr->sin_port);
+    len = std::strlen(buf.data());
+  }
+  else
+  {
+    buf[0] = '[';
+    inet_ntop(addr->sin6_family, &addr->sin6_addr, buf.data() + 1,
+              buf.size() - 1);
+    port = ntohs(addr->sin6_port);
+    len = std::strlen(buf.data());
+    buf[len++] = ']';
+  }
+
+  buf[len++] = ':';
+  to_chars(buf.data() + len, buf.data() + buf.size(), port);
+
+  return {buf.data()};
+}
+
+// Don't include the tcp_service method definitions if we are
+// testing the static methods.
+#ifndef ECHO_SERVICE_STATIC_TEST
 auto tcp_service::initialize(const socket_handle &sock) noexcept
     -> std::error_code
 {
@@ -53,52 +96,15 @@ auto tcp_service::service(async_context &ctx, const socket_dialog &socket,
   ctx.scope.spawn(std::move(sendmsg));
 }
 
-static auto getpeername(const tcp_service::socket_dialog &socket,
-                        std::span<char> buf) -> std::string_view
-{
-  using namespace io::socket;
-  std::memset(buf.data(), 0, buf.size());
-  const char *address = nullptr;
-  unsigned short port = 0;
-  std::size_t len = 0;
-
-  auto addr = socket_address<sockaddr_in6>();
-  auto span = io::getpeername(socket, addr);
-  if (addr->sin6_family == AF_INET)
-  {
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-    const auto *addr = reinterpret_cast<const sockaddr_in *>(span.data());
-    address =
-        inet_ntop(addr->sin_family, &addr->sin_addr, buf.data(), buf.size());
-    port = ntohs(addr->sin_port);
-    len = std::strlen(address);
-  }
-  else
-  {
-    buf[0] = '[';
-    address = inet_ntop(addr->sin6_family, &addr->sin6_addr, buf.data() + 1,
-                        buf.size() - 1);
-    port = ntohs(addr->sin6_port);
-    len = std::strlen(buf.data());
-    buf[len++] = ']';
-  }
-
-  buf[len++] = ':';
-  auto [ptr, err] =
-      std::to_chars(buf.data() + len, buf.data() + buf.size(), port);
-  if (err != std::errc{})
-    return {};
-
-  return {address};
-}
-
 auto tcp_service::operator()(async_context &ctx, const socket_dialog &socket,
                              const std::shared_ptr<read_context> &rctx,
                              std::span<const std::byte> buf) -> void
 {
   using namespace io::socket;
-  static constexpr auto BUFSIZE = 6UL;
-  static auto BUF = std::array<char, INET6_ADDRSTRLEN + BUFSIZE>{};
+  // Additional buffer length for the port number, the square brackets,
+  // the colon, and the null byte.
+  static constexpr auto BUFLEN = 9UL;
+  static auto BUF = std::array<char, INET6_ADDRSTRLEN + BUFLEN>{};
 
   auto sockfd = static_cast<native_socket_type>(*socket.socket);
   if (sockfd != INVALID_SOCKET &&
@@ -110,16 +116,17 @@ auto tcp_service::operator()(async_context &ctx, const socket_dialog &socket,
   if (rctx && sockfd != INVALID_SOCKET && !active_[sockfd])
   {
     active_[sockfd] = true;
-    spdlog::info("New TCP connection from {}.", getpeername(socket, BUF));
+    spdlog::info("New TCP connection from {}.", getpeername_(socket, BUF));
   }
 
   if (!rctx && sockfd != INVALID_SOCKET && active_[sockfd])
   {
     active_[sockfd] = false;
-    spdlog::info("End TCP connection from {}.", getpeername(socket, BUF));
+    spdlog::info("End TCP connection from {}.", getpeername_(socket, BUF));
   }
 
   service(ctx, socket, rctx, {.buffers = buf});
 }
+#endif
 
 } // namespace echo

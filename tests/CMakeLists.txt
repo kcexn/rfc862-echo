@@ -5,6 +5,8 @@ set(TEST_NAMES
   test_mock_sendmsg
   test_generator
   test_argument_parser
+  test_echo_service_static
+  test_echo_static_mock_getpeername
 )
 
 foreach(TEST_NAME IN LISTS TEST_NAMES)

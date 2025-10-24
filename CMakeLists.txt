@@ -34,7 +34,7 @@ CPMAddPackage(
 CPMAddPackage(
   NAME cppnet
   GITHUB_REPOSITORY kcexn/cloudbus-net
-  GIT_TAG v0.2.2
+  GIT_TAG v0.2.3
   OPTIONS
   "CPPNET_BUILD_EXAMPLES OFF"
   "CPPNET_BUILD_TESTING OFF"
