@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.28)
 project(echo)
 
-# cloudbus-segment requires at least C++20
+# echo requires at least C++20
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(FetchContent)
+include(GNUInstallDirs)
 
 # Get CPM
 # For more information on how to add CPM to your project, see: https://github.com/cpm-cmake/CPM.cmake#adding-cpm
@@ -24,7 +25,7 @@ CPMAddPackage(
 CPMAddPackage(
   NAME asyncberkeley
   GITHUB_REPOSITORY kcexn/async-berkeley
-  GIT_TAG v0.1.4
+  GIT_TAG v0.1.5
   OPTIONS
   "IO_BUILD_TESTING OFF"
   "IO_BUILD_EXAMPLES OFF"
@@ -34,7 +35,7 @@ CPMAddPackage(
 CPMAddPackage(
   NAME cppnet
   GITHUB_REPOSITORY kcexn/cloudbus-net
-  GIT_TAG v0.2.3
+  GIT_TAG v0.2.4
   OPTIONS
   "CPPNET_BUILD_EXAMPLES OFF"
   "CPPNET_BUILD_TESTING OFF"

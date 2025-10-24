@@ -17,16 +17,21 @@ target_include_directories(
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_executable(
-  echo
+  echo-server
   main.cpp
 )
 target_include_directories(
-  echo
+  echo-server
   PRIVATE
   ${INCLUDE_DIRS}
 )
 target_link_libraries(
-  echo
+  echo-server
   PRIVATE
   $<TARGET_OBJECTS:echolib>
+)
+
+install(TARGETS echo-server
+    RUNTIME
+    COMPONENT Runtime
 )
