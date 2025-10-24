@@ -112,6 +112,12 @@ auto parse_args(int argc, char const *const *argv) -> std::optional<config>
 
   auto conf = config();
   char const *const progname = std::filesystem::path(*argv).stem().c_str();
+
+  auto error = [&]() -> std::optional<config> {
+    std::cerr << std::format(usage, progname);
+    return std::nullopt;
+  };
+
   for (const auto &option : argument_parser::parse(argc, argv))
   {
     const auto &[flag, value] = option;
@@ -128,22 +134,19 @@ auto parse_args(int argc, char const *const *argv) -> std::optional<config>
         if (!set_loglevel(value))
           continue;
 
-        std::cerr << std::format(usage, progname);
-        return std::nullopt;
+        return error();
       }
 
-      std::cerr << std::format("Unknown flag: {}\n", flag)
-                << std::format(usage, progname);
-      return std::nullopt;
+      std::cerr << std::format("Unknown flag: {}\n", flag);
+      return error();
     }
 
     // positional options.
     auto [ptr, err] = std::from_chars(value.cbegin(), value.cend(), conf.port);
     if (err != std::errc{})
     {
-      std::cerr << std::format("Invalid port number: {}\n", value)
-                << std::format(usage, progname);
-      return std::nullopt;
+      std::cerr << std::format("Invalid port number: {}\n", value);
+      return error();
     }
   }
 
@@ -171,8 +174,8 @@ auto main(int argc, char *argv[]) -> int
 
     auto lock = std::unique_lock{mtx};
     cvar.wait(lock, [&] { return service.stopped.load(); });
-  }
 
-  spdlog::info("Echo server stopped.");
+    spdlog::info("Echo server stopped.");
+  }
   return 0;
 }
