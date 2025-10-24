@@ -80,8 +80,8 @@ struct config {
 static auto set_loglevel(std::string_view value) -> int
 {
   auto level = std::string(value);
-  // NOLINTNEXTLINE(readability-identifier-length)
   std::ranges::transform(level, level.begin(),
+                         // NOLINTNEXTLINE(readability-identifier-length)
                          [](unsigned char ch) { return std::tolower(ch); });
 
   auto spdlog_level = spdlog::level::from_str(level);
