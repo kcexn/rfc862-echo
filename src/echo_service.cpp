@@ -21,16 +21,24 @@
 
 #include <spdlog/spdlog.h>
 
+#include <cassert>
 #include <charconv>
 #include <string_view>
 
 #include <arpa/inet.h>
 namespace echo {
+// Additional buffer length for the port number, the square brackets,
+// the colon, and the null byte.
+static constexpr auto BUFLEN = 9UL;
 
 static inline auto
 getpeername_(const tcp_service::socket_dialog &socket,
              std::span<char> buf) noexcept -> std::string_view
 {
+  assert(buf.size() >= INET6_ADDRSTRLEN + BUFLEN &&
+         "Buffer must be large enough to print an IPv6 address and a port "
+         "number.");
+
   using namespace io::socket;
   using io::getpeername;
   using std::to_chars;
@@ -101,9 +109,6 @@ auto tcp_service::operator()(async_context &ctx, const socket_dialog &socket,
                              std::span<const std::byte> buf) -> void
 {
   using namespace io::socket;
-  // Additional buffer length for the port number, the square brackets,
-  // the colon, and the null byte.
-  static constexpr auto BUFLEN = 9UL;
   auto addrstr = std::array<char, INET6_ADDRSTRLEN + BUFLEN>();
   auto sockfd = static_cast<native_socket_type>(*socket.socket);
 
