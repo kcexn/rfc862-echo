@@ -26,9 +26,9 @@ add_custom_target(coverage
     VERBATIM
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/coverage
     COMMAND ${GCOVR_EXECUTABLE}
-      --root "${CMAKE_SOURCE_DIR}"
-      --filter "${CMAKE_SOURCE_DIR}/(src|include)/.*"
-      --exclude "${CMAKE_SOURCE_DIR}/src/main\.cpp"
+      --root "${PROJECT_SOURCE_DIR}"
+      --filter "${PROJECT_SOURCE_DIR}/(src|include)/.*"
+      --exclude "${PROJECT_SOURCE_DIR}/src/main\.cpp"
       --html --html-details
       --output "${CMAKE_BINARY_DIR}/coverage/index.html"
       --print-summary
@@ -43,9 +43,9 @@ add_custom_target(coverage-xml
     VERBATIM
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/coverage
     COMMAND ${GCOVR_EXECUTABLE}
-      --root "${CMAKE_SOURCE_DIR}"
-      --filter "${CMAKE_SOURCE_DIR}/(src|include)/.*"
-      --exclude "${CMAKE_SOURCE_DIR}/src/main\.cpp"
+      --root "${PROJECT_SOURCE_DIR}"
+      --filter "${PROJECT_SOURCE_DIR}/(src|include)/.*"
+      --exclude "${PROJECT_SOURCE_DIR}/src/main\.cpp"
       --xml
       --output ${CMAKE_BINARY_DIR}/coverage/coverage.xml
       --print-summary
