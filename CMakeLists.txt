@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(echo)
+project(EchoServer VERSION 0.1.0 LANGUAGES CXX)
 
 # echo requires at least C++20
 set(CMAKE_CXX_STANDARD 20)
@@ -12,28 +12,15 @@ include(GNUInstallDirs)
 include(cmake/CPM.cmake)
 
 # Add stdexec as a dependency
-CPMAddPackage(
-  URI "gh:NVIDIA/stdexec#main"
-  OPTIONS
-  "STDEXEC_BUILD_TESTS OFF"
-  "STDEXEC_BUILD_EXAMPLES OFF"
-)
+CPMAddPackage(URI "gh:NVIDIA/stdexec#main"
+              OPTIONS "STDEXEC_BUILD_EXAMPLES OFF")
 
 # Add AsyncBerkeley as a dependency.
-CPMAddPackage(
-  URI "gh:kcexn/async-berkeley#develop"
-  OPTIONS
-  "IO_BUILD_TESTING OFF"
-  "IO_BUILD_EXAMPLES OFF"
-)
+CPMAddPackage(URI "gh:kcexn/async-berkeley@0.2.0"
+              OPTIONS "IO_BUILD_EXAMPLES OFF")
 
 # Add cppnet as a dependency.
-CPMAddPackage(
-  URI "gh:kcexn/cloudbus-net#develop"
-  OPTIONS
-  "CPPNET_BUILD_EXAMPLES OFF"
-  "CPPNET_BUILD_TESTING OFF"
-)
+CPMAddPackage("gh:kcexn/cloudbus-net@0.2.5")
 
 # Add spdlog as a dependency.
 CPMAddPackage("gh:gabime/spdlog@1.16.0")
