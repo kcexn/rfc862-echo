@@ -91,7 +91,7 @@ auto tcp_service::service(async_context &ctx, const socket_dialog &socket,
   using namespace stdexec;
 
   sender auto sendmsg =
-      io::sendmsg(socket, msg, 0) |
+      io::sendmsg(socket, msg, MSG_NOSIGNAL) |
       then([&, socket, rctx, bufs = msg.buffers](auto &&len) mutable {
         if (bufs += len; bufs)
           // NOLINTNEXTLINE(readability-avoid-return-with-void-value)
