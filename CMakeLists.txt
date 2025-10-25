@@ -12,12 +12,20 @@ include(GNUInstallDirs)
 include(cmake/CPM.cmake)
 
 # Add stdexec as a dependency
-CPMAddPackage(URI "gh:NVIDIA/stdexec#main"
-              OPTIONS "STDEXEC_BUILD_EXAMPLES OFF")
+CPMAddPackage(
+  URI "gh:NVIDIA/stdexec#main"
+  OPTIONS
+    "STDEXEC_BUILD_EXAMPLES OFF"
+    "STDEXEC_BUILD_TESTING OFF"
+)
 
 # Add AsyncBerkeley as a dependency.
-CPMAddPackage(URI "gh:kcexn/async-berkeley@0.2.0"
-              OPTIONS "IO_BUILD_EXAMPLES OFF")
+CPMAddPackage(
+  URI "gh:kcexn/async-berkeley@0.2.0"
+  OPTIONS
+    "IO_BUILD_EXAMPLES OFF"
+    "IO_BUILD_TESTING OFF"
+)
 
 # Add cppnet as a dependency.
 CPMAddPackage("gh:kcexn/cloudbus-net@0.2.5")
