@@ -10,12 +10,19 @@ add_library(
 )
 target_include_directories(
   echolib
-  PRIVATE
-  ${INCLUDE_DIRS}
+  PUBLIC
+  ${PROJECT_SOURCE_DIR}/include/
+)
+target_link_libraries(
+  echolib
+  PUBLIC
+  asyncberk
+  cppnet
+  STDEXEC::stdexec
+  spdlog::spdlog_header_only
 )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
 add_executable(
   echo-server
   main.cpp
@@ -28,10 +35,6 @@ target_include_directories(
 target_link_libraries(
   echo-server
   PRIVATE
-  $<TARGET_OBJECTS:echolib>
+  echolib
 )
-
-install(TARGETS echo-server
-    RUNTIME
-    COMPONENT Runtime
-)
+install(TARGETS echo-server)

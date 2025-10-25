@@ -23,7 +23,7 @@ foreach(TEST_NAME IN LISTS TEST_NAMES)
   target_link_libraries(
     ${TEST_NAME}
     PRIVATE
-    $<TARGET_OBJECTS:echolib>
+    echolib
     GTest::gtest_main
   )
 

@@ -13,9 +13,7 @@ include(cmake/CPM.cmake)
 
 # Add stdexec as a dependency
 CPMAddPackage(
-  NAME stdexec
-  GITHUB_REPOSITORY NVIDIA/stdexec
-  GIT_TAG main # This will always pull the latest code from the `main` branch. You may also use a specific release version or tag
+  URI "gh:NVIDIA/stdexec#main"
   OPTIONS
   "STDEXEC_BUILD_TESTS OFF"
   "STDEXEC_BUILD_EXAMPLES OFF"
@@ -23,9 +21,7 @@ CPMAddPackage(
 
 # Add AsyncBerkeley as a dependency.
 CPMAddPackage(
-  NAME asyncberkeley
-  GITHUB_REPOSITORY kcexn/async-berkeley
-  GIT_TAG v0.1.5
+  URI "gh:kcexn/async-berkeley#develop"
   OPTIONS
   "IO_BUILD_TESTING OFF"
   "IO_BUILD_EXAMPLES OFF"
@@ -33,29 +29,17 @@ CPMAddPackage(
 
 # Add cppnet as a dependency.
 CPMAddPackage(
-  NAME cppnet
-  GITHUB_REPOSITORY kcexn/cloudbus-net
-  GIT_TAG v0.2.4
+  URI "gh:kcexn/cloudbus-net#develop"
   OPTIONS
   "CPPNET_BUILD_EXAMPLES OFF"
   "CPPNET_BUILD_TESTING OFF"
 )
 
 # Add spdlog as a dependency.
-CPMAddPackage(
-  NAME spdlog
-  GITHUB_REPOSITORY gabime/spdlog
-  GIT_TAG v1.16.0
-)
+CPMAddPackage("gh:gabime/spdlog@1.16.0")
 
-# Include directories for build and distribution.
-set(INCLUDE_DIRS
-  "${CMAKE_SOURCE_DIR}/include/"
-  "${CMAKE_BINARY_DIR}/_deps/stdexec-src/include/"
-  "${CMAKE_BINARY_DIR}/_deps/asyncberkeley-src/include/"
-  "${CMAKE_BINARY_DIR}/_deps/cppnet-src/include/"
-  "${CMAKE_BINARY_DIR}/_deps/spdlog-src/include/"
-)
+# Add targets
+add_subdirectory(src)
 
 # Enable testing by default if this is a top-level project or
 # in submodules if the project has explicitly set BUILD_TESTING
@@ -65,20 +49,32 @@ if ((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME) OR BUILD_TESTING)
 else()
 	set(ECHO_BUILD_TESTING_DEFAULT OFF)
 endif()
+
 option(ECHO_BUILD_TESTING "Enable testing." ${ECHO_BUILD_TESTING_DEFAULT})
 if (ECHO_BUILD_TESTING)
+  # Add GoogleTest
+  message(STATUS "Configure tests with GoogleTest")
+  CPMAddPackage(
+    NAME googletest
+    URL "https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip"
+    EXCLUDE_FROM_ALL YES
+    SYSTEM YES
+  )
+  # For Windows: Prevent overriding the parent project's compiler/linker settings
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
   option(ECHO_ENABLE_COVERAGE "Enable code-coverage." ON)
   if (ECHO_ENABLE_COVERAGE)
     include(cmake/EnableCoverage.cmake)
   endif()
   # Enable tests.
   include(CTest)
-  include(cmake/EnableTests.cmake)
+  add_subdirectory(tests)
+
+  message(STATUS "GoogleTest configured successfully")
 endif()
 
 option(ECHO_BUILD_DOCS "Build documentation." OFF)
 if (ECHO_BUILD_DOCS)
   include(cmake/EnableDocs.cmake)
 endif()
-
-add_subdirectory(src)
