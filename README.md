@@ -27,6 +27,7 @@ All dependencies are automatically fetched via CMake:
 - [**async-berkeley**](https://github.com/kcexn/async-berkeley) - Async Berkeley sockets wrapper
 - [**cloudbus-net**](https://github.com/kcexn/cloudbus-net) - Networking utilities and service base classes
 - [**spdlog**](https://github.com/gabime/spdlog) - Fast C++ logging library
+- [**GoogleTest**](https://github.com/google/googletest) - Test suites (Optional)
 
 ## Quick Start
 
@@ -46,11 +47,11 @@ cmake --build build/release
 
 ```bash
 # Install (default: /usr/local/bin)
-sudo cmake --install build/release --component Runtime
+sudo cmake --install build/release
 
 # Or specify custom prefix
 cmake --preset release -DCMAKE_INSTALL_PREFIX=/opt/echo
-sudo cmake --install build/release --component Runtime
+sudo cmake --install build/release
 ```
 
 ### Running the Server
@@ -95,7 +96,7 @@ cmake --build build/debug
 ctest --test-dir build/debug
 
 # Run specific test
-./build/debug/bin/test_echo_service
+./build/debug/tests/test_echo_service
 ```
 
 ### Code Coverage
