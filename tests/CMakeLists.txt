@@ -1,12 +1,12 @@
 include(GoogleTest)
 
 set(TEST_NAMES
-  test_echo_service
-  test_mock_sendmsg
-  test_generator
   test_argument_parser
-  test_echo_service_static
-  test_echo_static_mock_getpeername
+  test_generator
+  test_mock_sendmsg
+  test_tcp_echo_static_mock_getpeername
+  test_tcp_echo_static
+  test_tcp_echo
 )
 
 foreach(TEST_NAME IN LISTS TEST_NAMES)

@@ -15,7 +15,7 @@
  */
 
 // NOLINTBEGIN
-#include "echo/echo_service.hpp"
+#include "echo/echo_server.hpp"
 
 #include <gtest/gtest.h>
 
@@ -39,13 +39,13 @@ ssize_t sendmsg(int __fd, const struct msghdr *__message, int flags)
   return (test_error) ? -1 : len_;
 }
 
-class EchoServiceTest : public ::testing::Test {};
+class TCPEchoServerTest : public ::testing::Test {};
 
-TEST_F(EchoServiceTest, SendMsgTest)
+TEST_F(TCPEchoServerTest, SendMsgTest)
 {
   using namespace io::socket;
 
-  auto list = std::list<async_service<tcp_service>>{};
+  auto list = std::list<context_thread<tcp_server>>{};
   auto &service = list.emplace_back();
 
   std::mutex mtx;
@@ -72,11 +72,11 @@ TEST_F(EchoServiceTest, SendMsgTest)
   }
 }
 
-TEST_F(EchoServiceTest, TestError)
+TEST_F(TCPEchoServerTest, TestError)
 {
   using namespace io::socket;
 
-  auto list = std::list<async_service<tcp_service>>{};
+  auto list = std::list<context_thread<tcp_server>>{};
   auto &service = list.emplace_back();
 
   std::mutex mtx;

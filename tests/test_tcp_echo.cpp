@@ -15,7 +15,7 @@
  */
 
 // NOLINTBEGIN
-#include "echo/echo_service.hpp"
+#include "echo/echo_server.hpp"
 
 #include <gtest/gtest.h>
 
@@ -26,13 +26,13 @@
 using namespace net::service;
 using namespace echo;
 
-class EchoServiceTest : public ::testing::Test {};
+class TCPEchoServerTest : public ::testing::Test {};
 
-TEST_F(EchoServiceTest, StartTest)
+TEST_F(TCPEchoServerTest, StartTest)
 {
   using namespace io::socket;
 
-  auto list = std::list<async_service<tcp_service>>{};
+  auto list = std::list<context_thread<tcp_server>>{};
   auto &service = list.emplace_back();
 
   std::mutex mtx;

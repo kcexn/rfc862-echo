@@ -14,24 +14,24 @@
  * along with Echo.  If not, see <https://www.gnu.org/licenses/>.
  */
 /**
- * @file echo_service.hpp
- * @brief This file declares the echo service.
+ * @file echo_server.hpp
+ * @brief This file declares the echo server.
  */
 #pragma once
-#ifndef ECHO_SERVICE_HPP
-#define ECHO_SERVICE_HPP
+#ifndef ECHO_SERVER_HPP
+#define ECHO_SERVER_HPP
 #include <net/service/async_tcp_service.hpp>
 /** @namespace For echo services. */
 namespace echo {
 /** @brief The service type to use. */
 template <typename TCPStreamHandler>
-using service_base = net::service::async_tcp_service<TCPStreamHandler>;
+using tcp_base = net::service::async_tcp_service<TCPStreamHandler>;
 
-/** @brief The Cloudbus segment service. */
-class tcp_service : public service_base<tcp_service> {
+/** @brief A TCP echo server. */
+class tcp_server : public tcp_base<tcp_server> {
 public:
   /** @brief The base class. */
-  using Base = service_base<tcp_service>;
+  using Base = tcp_base<tcp_server>;
   /** @brief A connections type. */
   using connections = std::vector<bool>;
   /** @brief The socket message type. */
@@ -42,7 +42,7 @@ public:
    * @param address The local IP address to bind to.
    */
   template <typename T>
-  explicit tcp_service(socket_address<T> address) noexcept : Base(address)
+  explicit tcp_server(socket_address<T> address) noexcept : Base(address)
   {}
   /**
    * @brief Initializes socket options.
@@ -76,4 +76,4 @@ private:
   connections active_;
 };
 } // namespace echo
-#endif // ECHO_SERVICE_HPP
+#endif // ECHO_SERVER_HPP

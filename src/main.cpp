@@ -1,5 +1,5 @@
 #include "echo/detail/argument_parser.hpp"
-#include "echo/echo_service.hpp"
+#include "echo/echo_server.hpp"
 
 #include <spdlog/common-inl.h>
 #include <spdlog/common.h>
@@ -16,7 +16,7 @@
 using namespace net::service;
 using namespace echo;
 
-using service_type = async_service<tcp_service>;
+using service_type = context_thread<tcp_server>;
 
 static constexpr unsigned short PORT = 7;
 static constexpr char const *const usage =

@@ -15,27 +15,17 @@
  */
 
 // NOLINTBEGIN
-#ifndef ECHO_SERVICE_STATIC_TEST
-#define ECHO_SERVICE_STATIC_TEST
-#include "echo/echo_service.hpp"
-
-#include <format>
-using namespace net::service;
-using namespace echo;
-
-// Mock the call to getpeername before we include the implementation.
-int getpeername(int __fd, struct sockaddr *addr, socklen_t *__len)
-{
-  errno = static_cast<int>(std::errc::bad_address);
-  return -1;
-}
-
-#include "../src/echo_service.cpp"
+#ifndef ECHO_SERVER_STATIC_TEST
+#define ECHO_SERVER_STATIC_TEST
+#include "../src/echo_server.cpp"
 
 #include <gtest/gtest.h>
 
 #include <arpa/inet.h>
-class EchoServiceTest : public ::testing::Test {
+using namespace net::service;
+using namespace echo;
+
+class TCPEchoServerTest : public ::testing::Test {
   auto SetUp() -> void override
   {
     using namespace io::socket;
@@ -84,11 +74,11 @@ class EchoServiceTest : public ::testing::Test {
   std::condition_variable cvar;
 
 protected:
-  async_service<tcp_service> service_v4;
-  async_service<tcp_service> service_v6;
+  context_thread<tcp_server> service_v4;
+  context_thread<tcp_server> service_v6;
 };
 
-TEST_F(EchoServiceTest, TestGetPeernameErrorV4)
+TEST_F(TCPEchoServerTest, TestGetPeernameV4)
 {
   using namespace io;
   using namespace io::socket;
@@ -107,11 +97,10 @@ TEST_F(EchoServiceTest, TestGetPeernameErrorV4)
 
   auto buf = std::array<char, INET6_ADDRSTRLEN + BUFLEN>();
   auto address = getpeername_(dialog, buf);
-  EXPECT_EQ(address, "");
-  EXPECT_EQ(std::format("TCP address: {}", address), "TCP address: ");
+  EXPECT_EQ(address, "127.0.0.1:8080");
 }
 
-TEST_F(EchoServiceTest, TestGetPeernameErrorV6)
+TEST_F(TCPEchoServerTest, TestGetPeernameV6)
 {
   using namespace io;
   using namespace io::socket;
@@ -131,9 +120,8 @@ TEST_F(EchoServiceTest, TestGetPeernameErrorV6)
 
   auto buf = std::array<char, INET6_ADDRSTRLEN + BUFLEN>();
   auto address = getpeername_(dialog, buf);
-  EXPECT_EQ(address, "");
-  EXPECT_EQ(std::format("TCP address: {}", address), "TCP address: ");
+  EXPECT_EQ(address, "[::1]:8081");
 }
-#undef ECHO_SERVICE_STATIC_TEST
-#endif // ECHO_SERVICE_STATIC_TEST
+#undef ECHO_SERVER_STATIC_TEST
+#endif // ECHO_SERVER_STATIC_TEST
 // NOLINTEND

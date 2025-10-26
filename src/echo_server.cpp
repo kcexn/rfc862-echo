@@ -14,10 +14,10 @@
  * along with Echo.  If not, see <https://www.gnu.org/licenses/>.
  */
 /**
- * @file echo_service.cpp
- * @brief This file defines the segment service.
+ * @file echo_server.cpp
+ * @brief This file defines the echo server.
  */
-#include "echo/echo_service.hpp"
+#include "echo/echo_server.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -32,7 +32,7 @@ namespace echo {
 static constexpr auto BUFLEN = 9UL;
 
 static inline auto
-getpeername_(const tcp_service::socket_dialog &socket,
+getpeername_(const tcp_server::socket_dialog &socket,
              std::span<char> buf) noexcept -> std::string_view
 {
   assert(buf.size() >= INET6_ADDRSTRLEN + BUFLEN &&
@@ -77,16 +77,16 @@ getpeername_(const tcp_service::socket_dialog &socket,
 
 // Don't include the tcp_service method definitions if we are
 // testing the static methods.
-#ifndef ECHO_SERVICE_STATIC_TEST
-auto tcp_service::initialize(const socket_handle &sock) noexcept
+#ifndef ECHO_SERVER_STATIC_TEST
+auto tcp_server::initialize(const socket_handle &sock) noexcept
     -> std::error_code
 {
   return {};
 }
 
-auto tcp_service::service(async_context &ctx, const socket_dialog &socket,
-                          const std::shared_ptr<read_context> &rctx,
-                          const socket_message &msg) -> void
+auto tcp_server::service(async_context &ctx, const socket_dialog &socket,
+                         const std::shared_ptr<read_context> &rctx,
+                         const socket_message &msg) -> void
 {
   using namespace stdexec;
 
@@ -104,9 +104,9 @@ auto tcp_service::service(async_context &ctx, const socket_dialog &socket,
   ctx.scope.spawn(std::move(sendmsg));
 }
 
-auto tcp_service::operator()(async_context &ctx, const socket_dialog &socket,
-                             const std::shared_ptr<read_context> &rctx,
-                             std::span<const std::byte> buf) -> void
+auto tcp_server::operator()(async_context &ctx, const socket_dialog &socket,
+                            const std::shared_ptr<read_context> &rctx,
+                            std::span<const std::byte> buf) -> void
 {
   using namespace io::socket;
   auto addrstr = std::array<char, INET6_ADDRSTRLEN + BUFLEN>();
@@ -132,6 +132,6 @@ auto tcp_service::operator()(async_context &ctx, const socket_dialog &socket,
 
   service(ctx, socket, rctx, {.buffers = buf});
 }
-#endif
+#endif // ECHO_SERVER_STATIC_TEST
 
 } // namespace echo

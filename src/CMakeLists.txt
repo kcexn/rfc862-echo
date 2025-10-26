@@ -1,6 +1,6 @@
 set(echolib_SOURCES
   argument_parser.cpp
-  echo_service.cpp
+  echo_server.cpp
 )
 
 add_library(
