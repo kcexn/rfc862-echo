@@ -21,14 +21,14 @@ CPMAddPackage(
 
 # Add AsyncBerkeley as a dependency.
 CPMAddPackage(
-  URI "gh:kcexn/async-berkeley#develop"
+  URI "gh:kcexn/async-berkeley@0.3.0"
   OPTIONS
     "IO_BUILD_EXAMPLES OFF"
     "IO_BUILD_TESTING OFF"
 )
 
 # Add cppnet as a dependency.
-CPMAddPackage("gh:kcexn/cloudbus-net#develop")
+CPMAddPackage("gh:kcexn/cloudbus-net@0.3.0")
 
 # Add spdlog as a dependency.
 CPMAddPackage("gh:gabime/spdlog@1.16.0")
