@@ -21,6 +21,9 @@
 #ifndef ECHO_SERVER_HPP
 #define ECHO_SERVER_HPP
 #include <net/service/async_tcp_service.hpp>
+
+#include <chrono>
+#include <optional>
 /** @namespace For echo services. */
 namespace echo {
 /** @brief The service type to use. */
@@ -36,6 +39,7 @@ public:
   using connections = std::vector<bool>;
   /** @brief The socket message type. */
   using socket_message = io::socket::socket_message<>;
+
   /**
    * @brief Constructs segment_service on the socket address.
    * @tparam T The type of the socket_address.
@@ -47,9 +51,14 @@ public:
   /**
    * @brief Initializes socket options.
    * @param sock The socket to initialize.
+   * @returns A portable error_code.
    */
   [[nodiscard]] static auto
   initialize(const socket_handle &sock) noexcept -> std::error_code;
+
+  /** @brief Runs when the server receives a terminate signal. */
+  auto stop() noexcept -> void;
+
   /**
    * @brief Services the incoming socket_message.
    * @param ctx The asynchronous context of the message.
@@ -72,8 +81,19 @@ public:
                   std::span<const std::byte> buf) -> void;
 
 private:
+  /** @brief The clock type. */
+  using clock = std::chrono::steady_clock;
+  /** @brief The timepoint type. */
+  using time_point = clock::time_point;
+  /** @brief The duration type. */
+  using duration = std::chrono::milliseconds;
+  /** @brief The drain timeout interval. */
+  static constexpr auto DRAIN_TIMER = duration(5000);
+
   /** @brief Active connections. */
   connections active_;
+  /** @brief Drain timeout. */
+  std::optional<time_point> drain_timeout_;
 };
 } // namespace echo
 #endif // ECHO_SERVER_HPP

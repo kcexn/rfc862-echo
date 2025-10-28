@@ -84,6 +84,29 @@ auto tcp_server::initialize(const socket_handle &sock) noexcept
   return {};
 }
 
+auto tcp_server::stop() noexcept -> void
+{
+  using socket_type = io::socket::native_socket_type;
+
+  if (drain_timeout_)
+  {
+    if (clock::now() >= *drain_timeout_)
+    {
+      spdlog::info("Stop requested. Closing TCP connections...");
+      for (socket_type i = 0; i < static_cast<int>(active_.size()); ++i)
+      {
+        if (active_[i])
+          shutdown(i, SHUT_RD);
+      }
+    }
+  }
+  else
+  {
+    spdlog::info("Stop requested. Draining TCP connections...");
+    drain_timeout_ = clock::now() + DRAIN_TIMER;
+  }
+}
+
 auto tcp_server::service(async_context &ctx, const socket_dialog &socket,
                          const std::shared_ptr<read_context> &rctx,
                          const socket_message &msg) -> void
@@ -120,6 +143,9 @@ auto tcp_server::operator()(async_context &ctx, const socket_dialog &socket,
 
   if (rctx && sockfd != INVALID_SOCKET && !active_[sockfd])
   {
+    if (drain_timeout_) // Don't accept new connections after we begin draining.
+      return;
+
     active_[sockfd] = true;
     spdlog::info("New TCP connection from {}.", getpeername_(socket, addrstr));
   }

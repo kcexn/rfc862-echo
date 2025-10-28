@@ -69,4 +69,37 @@ TEST_F(TCPEchoServerTest, StartTest)
     }
   }
 }
+
+TEST_F(TCPEchoServerTest, ServerInitiatedSocketClose)
+{
+  using namespace io::socket;
+
+  auto service = context_thread<tcp_server>();
+
+  std::mutex mtx;
+  std::condition_variable cvar;
+  auto addr = socket_address<sockaddr_in>();
+  addr->sin_family = AF_INET;
+  addr->sin_port = htons(8080);
+
+  service.start(mtx, cvar, addr);
+  {
+    auto lock = std::unique_lock{mtx};
+    cvar.wait(lock, [&] { return service.interrupt || service.stopped; });
+  }
+  ASSERT_TRUE(static_cast<bool>(service.interrupt));
+  {
+    using namespace io;
+    auto sock = socket_handle(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    addr->sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    ASSERT_EQ(connect(sock, addr), 0);
+
+    service.signal(service.terminate);
+    {
+      auto lock = std::unique_lock{mtx};
+      cvar.wait(lock, [&] { return service.stopped.load(); });
+    }
+  }
+}
 // NOLINTEND
