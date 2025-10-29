@@ -14,10 +14,10 @@
  * along with Echo.  If not, see <https://www.gnu.org/licenses/>.
  */
 /**
- * @file echo_server.cpp
- * @brief This file defines the echo server.
+ * @file tcp_server.cpp
+ * @brief This file defines the TCP echo server.
  */
-#include "echo/echo_server.hpp"
+#include "echo/tcp_server.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -112,6 +112,11 @@ auto tcp_server::service(async_context &ctx, const socket_dialog &socket,
                          const socket_message &msg) -> void
 {
   using namespace stdexec;
+  if (!msg.buffers)
+  {
+    reader(ctx, socket, rctx);
+    return;
+  }
 
   sender auto sendmsg =
       io::sendmsg(socket, msg, MSG_NOSIGNAL) |
@@ -135,22 +140,18 @@ auto tcp_server::operator()(async_context &ctx, const socket_dialog &socket,
   auto addrstr = std::array<char, INET6_ADDRSTRLEN + BUFLEN>();
   auto sockfd = static_cast<native_socket_type>(*socket.socket);
 
-  if (sockfd != INVALID_SOCKET &&
-      active_.size() < static_cast<std::size_t>(sockfd) + 1)
+  if (active_.size() < static_cast<std::size_t>(sockfd) + 1)
   {
     active_.resize(sockfd + 1);
   }
 
-  if (rctx && sockfd != INVALID_SOCKET && !active_[sockfd])
+  if (rctx && !active_[sockfd])
   {
-    if (drain_timeout_) // Don't accept new connections after we begin draining.
-      return;
-
     active_[sockfd] = true;
     spdlog::info("New TCP connection from {}.", getpeername_(socket, addrstr));
   }
 
-  if (!rctx && sockfd != INVALID_SOCKET && active_[sockfd])
+  if (!rctx && active_[sockfd])
   {
     active_[sockfd] = false;
     spdlog::info("End TCP connection from {}.", getpeername_(socket, addrstr));

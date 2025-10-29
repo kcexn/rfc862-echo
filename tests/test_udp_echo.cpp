@@ -15,25 +15,21 @@
  */
 
 // NOLINTBEGIN
-#include "echo/tcp_server.hpp"
+#include "echo/udp_server.hpp"
 
 #include <gtest/gtest.h>
-
-#include <cassert>
-#include <list>
 
 #include <arpa/inet.h>
 using namespace net::service;
 using namespace echo;
 
-class TCPEchoServerTest : public ::testing::Test {};
+class UDPEchoServerTest : public ::testing::Test {};
 
-TEST_F(TCPEchoServerTest, StartTest)
+TEST_F(UDPEchoServerTest, EchoTest)
 {
   using namespace io::socket;
 
-  auto list = std::list<context_thread<tcp_server>>{};
-  auto &service = list.emplace_back();
+  auto service = context_thread<udp_server>();
 
   std::mutex mtx;
   std::condition_variable cvar;
@@ -46,59 +42,29 @@ TEST_F(TCPEchoServerTest, StartTest)
     auto lock = std::unique_lock{mtx};
     cvar.wait(lock, [&] { return service.interrupt || service.stopped; });
   }
-  ASSERT_TRUE(static_cast<bool>(service.interrupt));
+  ASSERT_FALSE(service.stopped.load());
   {
     using namespace io;
-    auto sock = socket_handle(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    auto sock = socket_handle(AF_INET, SOCK_DGRAM, 0);
     addr->sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    ASSERT_EQ(connect(sock, addr), 0);
-
     auto buf = std::array<char, 1>{'x'};
-    auto msg = socket_message{.buffers = buf};
+    auto msg = socket_message<sockaddr_in>{
+        .address = {socket_address<sockaddr_in>()}, .buffers = buf};
 
     const char *alphabet = "abcdefghijklmnopqrstuvwxyz";
     auto *end = alphabet + 26;
 
     for (auto *it = alphabet; it != end; ++it)
     {
-      ASSERT_EQ(sendmsg(sock, socket_message{.buffers = std::span(it, 1)}, 0),
+      ASSERT_EQ(sendmsg(sock,
+                        socket_message<sockaddr_in>{
+                            .address = {addr}, .buffers = std::span(it, 1)},
+                        0),
                 1);
       ASSERT_EQ(recvmsg(sock, msg, 0), 1);
+      EXPECT_EQ(*msg.address, addr);
       EXPECT_EQ(buf[0], *it);
-    }
-  }
-}
-
-TEST_F(TCPEchoServerTest, ServerInitiatedSocketClose)
-{
-  using namespace io::socket;
-
-  auto service = context_thread<tcp_server>();
-
-  std::mutex mtx;
-  std::condition_variable cvar;
-  auto addr = socket_address<sockaddr_in>();
-  addr->sin_family = AF_INET;
-  addr->sin_port = htons(8080);
-
-  service.start(mtx, cvar, addr);
-  {
-    auto lock = std::unique_lock{mtx};
-    cvar.wait(lock, [&] { return service.interrupt || service.stopped; });
-  }
-  ASSERT_TRUE(static_cast<bool>(service.interrupt));
-  {
-    using namespace io;
-    auto sock = socket_handle(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    addr->sin_addr.s_addr = inet_addr("127.0.0.1");
-
-    ASSERT_EQ(connect(sock, addr), 0);
-
-    service.signal(service.terminate);
-    {
-      auto lock = std::unique_lock{mtx};
-      cvar.wait(lock, [&] { return service.stopped.load(); });
     }
   }
 }

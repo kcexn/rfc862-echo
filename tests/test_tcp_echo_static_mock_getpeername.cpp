@@ -17,7 +17,7 @@
 // NOLINTBEGIN
 #ifndef ECHO_SERVER_STATIC_TEST
 #define ECHO_SERVER_STATIC_TEST
-#include "echo/echo_server.hpp"
+#include "echo/tcp_server.hpp"
 
 #include <format>
 using namespace net::service;
@@ -30,7 +30,7 @@ int getpeername(int __fd, struct sockaddr *addr, socklen_t *__len)
   return -1;
 }
 
-#include "../src/echo_server.cpp"
+#include "../src/tcp_server.cpp"
 
 #include <gtest/gtest.h>
 

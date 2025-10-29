@@ -7,6 +7,7 @@ set(TEST_NAMES
   test_tcp_echo_static_mock_getpeername
   test_tcp_echo_static
   test_tcp_echo
+  test_udp_echo
 )
 
 foreach(TEST_NAME IN LISTS TEST_NAMES)

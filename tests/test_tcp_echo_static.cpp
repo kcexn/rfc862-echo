@@ -17,7 +17,7 @@
 // NOLINTBEGIN
 #ifndef ECHO_SERVER_STATIC_TEST
 #define ECHO_SERVER_STATIC_TEST
-#include "../src/echo_server.cpp"
+#include "../src/tcp_server.cpp"
 
 #include <gtest/gtest.h>
 

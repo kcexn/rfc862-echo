@@ -14,31 +14,26 @@
  * along with Echo.  If not, see <https://www.gnu.org/licenses/>.
  */
 /**
- * @file echo_server.hpp
- * @brief This file declares the echo server.
+ * @file udp_server.hpp
+ * @brief This file declares the UDP echo server.
  */
 #pragma once
-#ifndef ECHO_SERVER_HPP
-#define ECHO_SERVER_HPP
-#include <net/service/async_tcp_service.hpp>
-
-#include <chrono>
-#include <optional>
+#ifndef ECHO_UDP_SERVER_HPP
+#define ECHO_UDP_SERVER_HPP
+#include <net/service/async_udp_service.hpp>
 /** @namespace For echo services. */
 namespace echo {
 /** @brief The service type to use. */
-template <typename TCPStreamHandler>
-using tcp_base = net::service::async_tcp_service<TCPStreamHandler>;
+template <typename UDPStreamHandler>
+using udp_base = net::service::async_udp_service<UDPStreamHandler>;
 
-/** @brief A TCP echo server. */
-class tcp_server : public tcp_base<tcp_server> {
+/** @brief A UDP echo server. */
+class udp_server : public udp_base<udp_server> {
 public:
   /** @brief The base class. */
-  using Base = tcp_base<tcp_server>;
-  /** @brief A connections type. */
-  using connections = std::vector<bool>;
+  using Base = udp_base<udp_server>;
   /** @brief The socket message type. */
-  using socket_message = io::socket::socket_message<>;
+  using socket_message = io::socket::socket_message<sockaddr_in6>;
 
   /**
    * @brief Constructs segment_service on the socket address.
@@ -46,7 +41,7 @@ public:
    * @param address The local IP address to bind to.
    */
   template <typename T>
-  explicit tcp_server(socket_address<T> address) noexcept : Base(address)
+  explicit udp_server(socket_address<T> address) noexcept : Base(address)
   {}
   /**
    * @brief Initializes socket options.
@@ -55,9 +50,6 @@ public:
    */
   [[nodiscard]] static auto
   initialize(const socket_handle &sock) noexcept -> std::error_code;
-
-  /** @brief Runs when the server receives a terminate signal. */
-  auto stop() noexcept -> void;
 
   /**
    * @brief Services the incoming socket_message.
@@ -79,21 +71,6 @@ public:
   auto operator()(async_context &ctx, const socket_dialog &socket,
                   const std::shared_ptr<read_context> &rctx,
                   std::span<const std::byte> buf) -> void;
-
-private:
-  /** @brief The clock type. */
-  using clock = std::chrono::steady_clock;
-  /** @brief The timepoint type. */
-  using time_point = clock::time_point;
-  /** @brief The duration type. */
-  using duration = std::chrono::milliseconds;
-  /** @brief The drain timeout interval. */
-  static constexpr auto DRAIN_TIMER = duration(5000);
-
-  /** @brief Active connections. */
-  connections active_;
-  /** @brief Drain timeout. */
-  std::optional<time_point> drain_timeout_;
 };
 } // namespace echo
-#endif // ECHO_SERVER_HPP
+#endif // ECHO_UDP_SERVER_HPP

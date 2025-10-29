@@ -15,7 +15,7 @@
  */
 
 // NOLINTBEGIN
-#include "echo/echo_server.hpp"
+#include "echo/tcp_server.hpp"
 
 #include <gtest/gtest.h>
 

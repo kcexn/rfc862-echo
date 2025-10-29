@@ -1,5 +1,6 @@
 #include "echo/detail/argument_parser.hpp"
-#include "echo/echo_server.hpp"
+#include "echo/tcp_server.hpp"
+#include "echo/udp_server.hpp"
 
 #include <spdlog/common-inl.h>
 #include <spdlog/common.h>
@@ -16,7 +17,8 @@
 using namespace net::service;
 using namespace echo;
 
-using service_type = context_thread<tcp_server>;
+using tcp_echo_server = context_thread<tcp_server>;
+using udp_echo_server = context_thread<udp_server>;
 
 static constexpr unsigned short PORT = 7;
 static constexpr char const *const usage =
@@ -39,7 +41,7 @@ static auto signal_mask() -> sigset_t *
   return setp;
 }
 
-static auto signal_handler(service_type &service) -> std::jthread
+static auto signal_handler(tcp_echo_server &tcp_server, udp_echo_server &udp_server) -> std::jthread
 {
   static const sigset_t *sigmask = nullptr;
   static auto mtx = std::mutex();
@@ -54,13 +56,14 @@ static auto signal_handler(service_type &service) -> std::jthread
 
       while (!token.stop_requested())
       {
-        using enum service_type::signals;
+        using enum tcp_echo_server::signals;
         switch (sigtimedwait(sigmask, nullptr, &timeout))
         {
           case SIGTERM:
           case SIGHUP:
           case SIGINT:
-            service.signal(terminate);
+            tcp_server.signal(terminate);
+            udp_server.signal(terminate);
             break;
 
           default:
@@ -166,14 +169,19 @@ auto main(int argc, char *argv[]) -> int
     address->sin6_family = AF_INET6;
     address->sin6_port = htons(conf->port);
 
-    auto service = service_type{};
-    auto sighandler = signal_handler(service);
+    auto tcp_server = tcp_echo_server{};
+    auto udp_server = udp_echo_server{};
+
+    auto sighandler = signal_handler(tcp_server, udp_server);
 
     spdlog::info("Echo server starting on TCP port {}.", conf->port);
-    service.start(mtx, cvar, address);
+    tcp_server.start(mtx, cvar, address);
+
+    spdlog::info("Echo server starting on UDP port {}.", conf->port);
+    udp_server.start(mtx, cvar, address);
 
     auto lock = std::unique_lock{mtx};
-    cvar.wait(lock, [&] { return service.stopped.load(); });
+    cvar.wait(lock, [&] { return tcp_server.stopped && udp_server.stopped; });
 
     spdlog::info("Echo server stopped.");
   }
