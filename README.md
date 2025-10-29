@@ -4,12 +4,11 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/575775ae38044852bbc6eeefae1c83d5)](https://app.codacy.com/gh/kcexn/rfc862-echo/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/575775ae38044852bbc6eeefae1c83d5)](https://app.codacy.com/gh/kcexn/rfc862-echo/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
 
-A simple TCP echo server. Technically implements the TCP part of
-[RFC 862](https://datatracker.ietf.org/doc/html/rfc862).
+A simple echo server. Technically implements [RFC 862](https://datatracker.ietf.org/doc/html/rfc862).
 
 ## Features
 
-- **Echoes all received bytes**: Listens on port 7 by default.
+- **Supports both UDP and TCP echoing**: Listens on port 7 by default.
 - **IPv4/IPv6 Dual-Stack**: Supports both IPv4 and IPv6 connections.
 
 ## Requirements
@@ -25,7 +24,7 @@ All dependencies are automatically fetched via CMake:
 
 - [**stdexec**](https://github.com/NVIDIA/stdexec) - NVIDIA's C++ sender/receiver async framework
 - [**async-berkeley**](https://github.com/kcexn/async-berkeley) - Async Berkeley sockets wrapper
-- [**cloudbus-net**](https://github.com/kcexn/cloudbus-net) - Networking utilities and service base classes
+- [**cppnet**](https://github.com/kcexn/cloudbus-net) - Networking utilities and service base classes
 - [**spdlog**](https://github.com/gabime/spdlog) - Fast C++ logging library
 - [**GoogleTest**](https://github.com/google/googletest) - Test suites (Optional)
 
