@@ -41,7 +41,8 @@ static auto signal_mask() -> sigset_t *
   return setp;
 }
 
-static auto signal_handler(tcp_echo_server &tcp_server, udp_echo_server &udp_server) -> std::jthread
+static auto signal_handler(tcp_echo_server &tcp_server,
+                           udp_echo_server &udp_server) -> std::jthread
 {
   static const sigset_t *sigmask = nullptr;
   static auto mtx = std::mutex();
