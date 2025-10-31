@@ -31,6 +31,9 @@ namespace echo {
 // the colon, and the null byte.
 static constexpr auto BUFLEN = 9UL;
 
+// Dynamically configurable TCP buffer sizes for TCP sessions.
+static constexpr auto TCP_BUFSIZE = 4 * 1024UL;
+
 static inline auto
 getpeername_(const tcp_server::socket_dialog &socket,
              std::span<char> buf) noexcept -> std::string_view
@@ -147,13 +150,14 @@ auto tcp_server::operator()(async_context &ctx, const socket_dialog &socket,
 
   if (rctx && !active_[sockfd])
   {
-    active_[sockfd] = true;
+    auto &bufptr = active_[sockfd] = buffer_type(TCP_BUFSIZE);
+    rctx->msg.buffers = rctx->buffer = {*bufptr};
     spdlog::info("New TCP connection from {}.", getpeername_(socket, addrstr));
   }
 
   if (!rctx && active_[sockfd])
   {
-    active_[sockfd] = false;
+    active_[sockfd].reset();
     spdlog::info("End TCP connection from {}.", getpeername_(socket, addrstr));
   }
 

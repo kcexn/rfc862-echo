@@ -28,17 +28,19 @@
 namespace echo {
 /** @brief The service type to use. */
 template <typename TCPStreamHandler>
-using tcp_base = net::service::async_tcp_service<TCPStreamHandler>;
+using tcp_base = net::service::async_tcp_service<TCPStreamHandler, 0UL>;
 
 /** @brief A TCP echo server. */
 class tcp_server : public tcp_base<tcp_server> {
 public:
   /** @brief The base class. */
   using Base = tcp_base<tcp_server>;
+  /** @brief TCP buffer type. */
+  using buffer_type = std::vector<std::byte>;
   /** @brief A connections type. */
-  using connections = std::vector<bool>;
+  using connections = std::vector<std::optional<buffer_type> >;
   /** @brief The socket message type. */
-  using socket_message = io::socket::socket_message<>;
+  using socket_message = io::socket::socket_message<sockaddr_in6>;
 
   /**
    * @brief Constructs segment_service on the socket address.
