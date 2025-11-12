@@ -19,9 +19,6 @@
 
 #include <gtest/gtest.h>
 
-#include <cassert>
-#include <list>
-
 #include <arpa/inet.h>
 using namespace net::service;
 using namespace echo;
@@ -31,22 +28,16 @@ class TCPEchoServerTest : public ::testing::Test {};
 TEST_F(TCPEchoServerTest, StartTest)
 {
   using namespace io::socket;
+  using server = context_thread<tcp_server>;
 
-  auto list = std::list<context_thread<tcp_server>>{};
-  auto &service = list.emplace_back();
+  auto service = server();
 
-  std::mutex mtx;
-  std::condition_variable cvar;
   auto addr = socket_address<sockaddr_in>();
   addr->sin_family = AF_INET;
   addr->sin_port = htons(8080);
 
-  service.start(mtx, cvar, addr);
-  {
-    auto lock = std::unique_lock{mtx};
-    cvar.wait(lock, [&] { return service.interrupt || service.stopped; });
-  }
-  ASSERT_TRUE(static_cast<bool>(service.interrupt));
+  service.start(addr);
+  service.state.wait(async_context::PENDING);
   {
     using namespace io;
     auto sock = socket_handle(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -76,18 +67,12 @@ TEST_F(TCPEchoServerTest, ServerInitiatedSocketClose)
 
   auto service = context_thread<tcp_server>();
 
-  std::mutex mtx;
-  std::condition_variable cvar;
   auto addr = socket_address<sockaddr_in>();
   addr->sin_family = AF_INET;
   addr->sin_port = htons(8080);
 
-  service.start(mtx, cvar, addr);
-  {
-    auto lock = std::unique_lock{mtx};
-    cvar.wait(lock, [&] { return service.interrupt || service.stopped; });
-  }
-  ASSERT_TRUE(static_cast<bool>(service.interrupt));
+  service.start(addr);
+  service.state.wait(async_context::PENDING);
   {
     using namespace io;
     auto sock = socket_handle(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -96,10 +81,7 @@ TEST_F(TCPEchoServerTest, ServerInitiatedSocketClose)
     ASSERT_EQ(connect(sock, addr), 0);
 
     service.signal(service.terminate);
-    {
-      auto lock = std::unique_lock{mtx};
-      cvar.wait(lock, [&] { return service.stopped.load(); });
-    }
+    service.state.wait(async_context::STARTED);
   }
 }
 // NOLINTEND

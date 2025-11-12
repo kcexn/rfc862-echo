@@ -35,43 +35,26 @@ class TCPEchoServerTest : public ::testing::Test {
     addr_v4->sin_addr.s_addr = INADDR_ANY;
     addr_v4->sin_port = htons(8080);
 
-    service_v4.start(mtx, cvar, addr_v4);
-    {
-      auto lock = std::unique_lock{mtx};
-      cvar.wait(lock);
-    }
-    ASSERT_FALSE(static_cast<bool>(service_v4.stopped));
+    service_v4.start(addr_v4);
+    service_v4.state.wait(async_context::PENDING);
 
     auto addr_v6 = socket_address<sockaddr_in6>();
     addr_v6->sin6_family = AF_INET6;
     addr_v6->sin6_addr = IN6ADDR_ANY_INIT;
     addr_v6->sin6_port = htons(8081);
 
-    service_v6.start(mtx, cvar, addr_v6);
-    {
-      auto lock = std::unique_lock{mtx};
-      cvar.wait(lock);
-    }
-    ASSERT_FALSE(static_cast<bool>(service_v6.stopped));
+    service_v6.start(addr_v6);
+    service_v6.state.wait(async_context::PENDING);
   }
 
   auto TearDown() -> void override
   {
     service_v4.signal(service_v4.terminate);
-    {
-      auto lock = std::unique_lock{mtx};
-      cvar.wait(lock, [&] { return service_v4.stopped.load(); });
-    }
+    service_v4.state.wait(async_context::STARTED);
 
     service_v6.signal(service_v6.terminate);
-    {
-      auto lock = std::unique_lock{mtx};
-      cvar.wait(lock, [&] { return service_v6.stopped.load(); });
-    }
+    service_v6.state.wait(async_context::STARTED);
   }
-
-  std::mutex mtx;
-  std::condition_variable cvar;
 
 protected:
   context_thread<tcp_server> service_v4;

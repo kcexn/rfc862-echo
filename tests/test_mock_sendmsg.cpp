@@ -19,9 +19,6 @@
 
 #include <gtest/gtest.h>
 
-#include <cassert>
-#include <list>
-
 #include <arpa/inet.h>
 using namespace net::service;
 using namespace echo;
@@ -44,22 +41,15 @@ class TCPEchoServerTest : public ::testing::Test {};
 TEST_F(TCPEchoServerTest, SendMsgTest)
 {
   using namespace io::socket;
+  using service_t = context_thread<tcp_server>;
 
-  auto list = std::list<context_thread<tcp_server>>{};
-  auto &service = list.emplace_back();
-
-  std::mutex mtx;
-  std::condition_variable cvar;
+  auto service = service_t();
   auto addr = socket_address<sockaddr_in>();
   addr->sin_family = AF_INET;
   addr->sin_port = htons(8080);
 
-  service.start(mtx, cvar, addr);
-  {
-    auto lock = std::unique_lock{mtx};
-    cvar.wait(lock, [&] { return service.interrupt || service.stopped; });
-  }
-  ASSERT_TRUE(static_cast<bool>(service.interrupt));
+  service.start(addr);
+  service.state.wait(async_context::PENDING);
   {
     using namespace io;
     auto sock = socket_handle(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -75,22 +65,16 @@ TEST_F(TCPEchoServerTest, SendMsgTest)
 TEST_F(TCPEchoServerTest, TestError)
 {
   using namespace io::socket;
+  using service_t = context_thread<tcp_server>;
 
-  auto list = std::list<context_thread<tcp_server>>{};
-  auto &service = list.emplace_back();
+  auto service = service_t();
 
-  std::mutex mtx;
-  std::condition_variable cvar;
   auto addr = socket_address<sockaddr_in>();
   addr->sin_family = AF_INET;
   addr->sin_port = htons(8080);
 
-  service.start(mtx, cvar, addr);
-  {
-    auto lock = std::unique_lock{mtx};
-    cvar.wait(lock, [&] { return service.interrupt || service.stopped; });
-  }
-  ASSERT_TRUE(static_cast<bool>(service.interrupt));
+  service.start(addr);
+  service.state.wait(async_context::PENDING);
   {
     using namespace io;
     auto sock = socket_handle(AF_INET, SOCK_STREAM, IPPROTO_TCP);

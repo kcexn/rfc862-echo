@@ -7,7 +7,6 @@
 #include <spdlog/spdlog.h>
 
 #include <charconv>
-#include <condition_variable>
 #include <csignal>
 #include <filesystem>
 #include <format>
@@ -163,9 +162,6 @@ auto main(int argc, char *argv[]) -> int
 
   if (auto conf = parse_args(argc, argv))
   {
-    auto mtx = std::mutex{};
-    auto cvar = std::condition_variable{};
-
     auto address = socket_address<sockaddr_in6>{};
     address->sin6_family = AF_INET6;
     address->sin6_port = htons(conf->port);
@@ -176,13 +172,15 @@ auto main(int argc, char *argv[]) -> int
     auto sighandler = signal_handler(tcp_server, udp_server);
 
     spdlog::info("Echo server starting on TCP port {}.", conf->port);
-    tcp_server.start(mtx, cvar, address);
+    tcp_server.start(address);
+    tcp_server.state.wait(async_context::PENDING);
 
     spdlog::info("Echo server starting on UDP port {}.", conf->port);
-    udp_server.start(mtx, cvar, address);
+    udp_server.start(address);
+    udp_server.state.wait(async_context::PENDING);
 
-    auto lock = std::unique_lock{mtx};
-    cvar.wait(lock, [&] { return tcp_server.stopped && udp_server.stopped; });
+    tcp_server.state.wait(async_context::STARTED);
+    udp_server.state.wait(async_context::STARTED);
 
     spdlog::info("Echo server stopped.");
   }

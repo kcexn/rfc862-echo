@@ -11,24 +11,8 @@ include(GNUInstallDirs)
 # For more information on how to add CPM to your project, see: https://github.com/cpm-cmake/CPM.cmake#adding-cpm
 include(cmake/CPM.cmake)
 
-# Add stdexec as a dependency
-CPMAddPackage(
-  URI "gh:NVIDIA/stdexec#main"
-  OPTIONS
-    "STDEXEC_BUILD_EXAMPLES OFF"
-    "STDEXEC_BUILD_TESTING OFF"
-)
-
-# Add AsyncBerkeley as a dependency.
-CPMAddPackage(
-  URI "gh:kcexn/async-berkeley@0.3.1"
-  OPTIONS
-    "IO_BUILD_EXAMPLES OFF"
-    "IO_BUILD_TESTING OFF"
-)
-
 # Add cppnet as a dependency.
-CPMAddPackage("gh:kcexn/cloudbus-net@0.5.1")
+CPMAddPackage("gh:kcexn/cppnet@0.7.5")
 
 # Add spdlog as a dependency.
 CPMAddPackage("gh:gabime/spdlog@1.16.0")

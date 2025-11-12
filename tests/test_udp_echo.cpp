@@ -31,18 +31,12 @@ TEST_F(UDPEchoServerTest, EchoTest)
 
   auto service = context_thread<udp_server>();
 
-  std::mutex mtx;
-  std::condition_variable cvar;
   auto addr = socket_address<sockaddr_in>();
   addr->sin_family = AF_INET;
   addr->sin_port = htons(8080);
 
-  service.start(mtx, cvar, addr);
-  {
-    auto lock = std::unique_lock{mtx};
-    cvar.wait(lock, [&] { return service.interrupt || service.stopped; });
-  }
-  ASSERT_FALSE(service.stopped.load());
+  service.start(addr);
+  service.state.wait(async_context::PENDING);
   {
     using namespace io;
     auto sock = socket_handle(AF_INET, SOCK_DGRAM, 0);

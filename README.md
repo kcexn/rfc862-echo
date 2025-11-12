@@ -22,8 +22,6 @@ A simple echo server. Technically implements [RFC 862](https://datatracker.ietf.
 
 All dependencies are automatically fetched via CMake:
 
-- [**stdexec**](https://github.com/NVIDIA/stdexec) - NVIDIA's C++ sender/receiver async framework
-- [**async-berkeley**](https://github.com/kcexn/async-berkeley) - Async Berkeley sockets wrapper
 - [**cppnet**](https://github.com/kcexn/cloudbus-net) - Networking utilities and service base classes
 - [**spdlog**](https://github.com/gabime/spdlog) - Fast C++ logging library
 - [**GoogleTest**](https://github.com/google/googletest) - Test suites (Optional)
@@ -51,6 +49,13 @@ sudo cmake --install build/release
 # Or specify custom prefix
 cmake --preset release -DCMAKE_INSTALL_PREFIX=/opt/echo
 sudo cmake --install build/release
+```
+
+### Uninstallation
+
+```bash
+# Uninstall from build directory.
+cat build/release/install_manifest.txt | sudo xargs rm
 ```
 
 ### Running the Server

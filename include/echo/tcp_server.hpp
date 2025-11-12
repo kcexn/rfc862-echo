@@ -38,7 +38,7 @@ public:
   /** @brief TCP buffer type. */
   using buffer_type = std::vector<std::byte>;
   /** @brief A connections type. */
-  using connections = std::vector<std::optional<buffer_type> >;
+  using connections = std::vector<std::optional<buffer_type>>;
   /** @brief The socket message type. */
   using socket_message = io::socket::socket_message<sockaddr_in6>;
 
