@@ -110,14 +110,14 @@ auto tcp_server::stop() noexcept -> void
   }
 }
 
-auto tcp_server::service(async_context &ctx, const socket_dialog &socket,
-                         const std::shared_ptr<read_context> &rctx,
-                         const socket_message &msg) -> void
+auto tcp_server::echo(async_context &ctx, const socket_dialog &socket,
+                      const std::shared_ptr<read_context> &rctx,
+                      const socket_message &msg) -> void
 {
   using namespace stdexec;
   if (!msg.buffers)
   {
-    reader(ctx, socket, rctx);
+    submit_recv(ctx, socket, rctx);
     return;
   }
 
@@ -126,18 +126,18 @@ auto tcp_server::service(async_context &ctx, const socket_dialog &socket,
       then([&, socket, rctx, bufs = msg.buffers](auto &&len) mutable {
         if (bufs += len; bufs)
           // NOLINTNEXTLINE(readability-avoid-return-with-void-value)
-          return service(ctx, socket, rctx, {.buffers = bufs});
+          return echo(ctx, socket, rctx, {.buffers = bufs});
 
-        reader(ctx, socket, rctx);
+        submit_recv(ctx, socket, rctx);
       }) |
       upon_error([](auto &&error) {}); // GCOVR_EXCL_LINE
 
   ctx.scope.spawn(std::move(sendmsg));
 }
 
-auto tcp_server::operator()(async_context &ctx, const socket_dialog &socket,
-                            const std::shared_ptr<read_context> &rctx,
-                            std::span<const std::byte> buf) -> void
+auto tcp_server::service(async_context &ctx, const socket_dialog &socket,
+                         const std::shared_ptr<read_context> &rctx,
+                         std::span<const std::byte> buf) -> void
 {
   using namespace io::socket;
   auto addrstr = std::array<char, INET6_ADDRSTRLEN + BUFLEN>();
@@ -161,7 +161,7 @@ auto tcp_server::operator()(async_context &ctx, const socket_dialog &socket,
     spdlog::info("End TCP connection from {}.", getpeername_(socket, addrstr));
   }
 
-  service(ctx, socket, rctx, {.buffers = buf});
+  echo(ctx, socket, rctx, {.buffers = buf});
 }
 #endif // ECHO_SERVER_STATIC_TEST
 

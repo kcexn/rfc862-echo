@@ -41,7 +41,7 @@ class TCPEchoServerTest : public ::testing::Test {};
 TEST_F(TCPEchoServerTest, SendMsgTest)
 {
   using namespace io::socket;
-  using service_t = context_thread<tcp_server>;
+  using service_t = basic_context_thread<tcp_server>;
 
   auto service = service_t();
   auto addr = socket_address<sockaddr_in>();
@@ -65,7 +65,7 @@ TEST_F(TCPEchoServerTest, SendMsgTest)
 TEST_F(TCPEchoServerTest, TestError)
 {
   using namespace io::socket;
-  using service_t = context_thread<tcp_server>;
+  using service_t = basic_context_thread<tcp_server>;
 
   auto service = service_t();
 

@@ -26,14 +26,14 @@ udp_server::initialize(const socket_handle &sock) noexcept -> std::error_code
   return {};
 }
 
-auto udp_server::service(async_context &ctx, const socket_dialog &socket,
-                         const std::shared_ptr<read_context> &rctx,
-                         const socket_message &msg) -> void
+auto udp_server::echo(async_context &ctx, const socket_dialog &socket,
+                      const std::shared_ptr<read_context> &rctx,
+                      const socket_message &msg) -> void
 {
   using namespace stdexec;
   sender auto sendmsg = io::sendmsg(socket, msg, MSG_NOSIGNAL) |
                         then([&, socket, rctx, msg](auto &&len) mutable {
-                          reader(ctx, socket, rctx);
+                          submit_recv(ctx, socket, rctx);
                         }) |
                         upon_error([](auto &&error) {}); // GCOVR_EXCL_LINE
 
@@ -46,9 +46,9 @@ auto udp_server::service(async_context &ctx, const socket_dialog &socket,
  * @param rctx The read context that manages the read buffer lifetime.
  * @param buf The bytes that were read from the socket.
  */
-auto udp_server::operator()(async_context &ctx, const socket_dialog &socket,
-                            const std::shared_ptr<read_context> &rctx,
-                            std::span<const std::byte> buf) -> void
+auto udp_server::service(async_context &ctx, const socket_dialog &socket,
+                         const std::shared_ptr<read_context> &rctx,
+                         std::span<const std::byte> buf) -> void
 {
   using namespace io::socket;
   if (!rctx)
@@ -62,6 +62,6 @@ auto udp_server::operator()(async_context &ctx, const socket_dialog &socket,
         reinterpret_cast<struct sockaddr *>(std::ranges::data(address));
     address = socket_address<sockaddr_in>(ptr);
   }
-  service(ctx, socket, rctx, {.address = {address}, .buffers = buf});
+  echo(ctx, socket, rctx, {.address = {address}, .buffers = buf});
 }
 } // namespace echo

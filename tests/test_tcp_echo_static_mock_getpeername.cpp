@@ -67,8 +67,8 @@ class TCPEchoServerTest : public ::testing::Test {
   }
 
 protected:
-  context_thread<tcp_server> service_v4;
-  context_thread<tcp_server> service_v6;
+  basic_context_thread<tcp_server> service_v4;
+  basic_context_thread<tcp_server> service_v6;
 };
 
 TEST_F(TCPEchoServerTest, TestGetPeernameErrorV4)

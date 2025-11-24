@@ -20,7 +20,7 @@
 #pragma once
 #ifndef ECHO_TCP_SERVER_HPP
 #define ECHO_TCP_SERVER_HPP
-#include <net/service/async_tcp_service.hpp>
+#include <net/cppnet.hpp>
 
 #include <chrono>
 #include <optional>
@@ -68,9 +68,9 @@ public:
    * @param rctx The read context that manages the read buffer lifetime.
    * @param msg The message that was read from the socket.
    */
-  auto service(async_context &ctx, const socket_dialog &socket,
-               const std::shared_ptr<read_context> &rctx,
-               const socket_message &msg) -> void;
+  auto echo(async_context &ctx, const socket_dialog &socket,
+            const std::shared_ptr<read_context> &rctx,
+            const socket_message &msg) -> void;
   /**
    * @brief Receives the bytes emitted by the service_base reader.
    * @param ctx The asynchronous context of the message.
@@ -78,9 +78,9 @@ public:
    * @param rctx The read context that manages the read buffer lifetime.
    * @param buf The bytes that were read from the socket.
    */
-  auto operator()(async_context &ctx, const socket_dialog &socket,
-                  const std::shared_ptr<read_context> &rctx,
-                  std::span<const std::byte> buf) -> void;
+  auto service(async_context &ctx, const socket_dialog &socket,
+               const std::shared_ptr<read_context> &rctx,
+               std::span<const std::byte> buf) -> void;
 
 private:
   /** @brief The clock type. */

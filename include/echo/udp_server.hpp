@@ -20,12 +20,14 @@
 #pragma once
 #ifndef ECHO_UDP_SERVER_HPP
 #define ECHO_UDP_SERVER_HPP
-#include <net/service/async_udp_service.hpp>
+#include <net/cppnet.hpp>
 /** @namespace For echo services. */
 namespace echo {
+/** @brief UDP BufferSize. */
+static constexpr auto UDP_BUFSIZE = 4 * 1024UL;
 /** @brief The service type to use. */
 template <typename UDPStreamHandler>
-using udp_base = net::service::async_udp_service<UDPStreamHandler>;
+using udp_base = net::service::async_udp_service<UDPStreamHandler, UDP_BUFSIZE>;
 
 /** @brief A UDP echo server. */
 class udp_server : public udp_base<udp_server> {
@@ -58,9 +60,9 @@ public:
    * @param rctx The read context that manages the read buffer lifetime.
    * @param msg The message that was read from the socket.
    */
-  auto service(async_context &ctx, const socket_dialog &socket,
-               const std::shared_ptr<read_context> &rctx,
-               const socket_message &msg) -> void;
+  auto echo(async_context &ctx, const socket_dialog &socket,
+            const std::shared_ptr<read_context> &rctx,
+            const socket_message &msg) -> void;
   /**
    * @brief Receives the bytes emitted by the service_base reader.
    * @param ctx The asynchronous context of the message.
@@ -68,9 +70,9 @@ public:
    * @param rctx The read context that manages the read buffer lifetime.
    * @param buf The bytes that were read from the socket.
    */
-  auto operator()(async_context &ctx, const socket_dialog &socket,
-                  const std::shared_ptr<read_context> &rctx,
-                  std::span<const std::byte> buf) -> void;
+  auto service(async_context &ctx, const socket_dialog &socket,
+               const std::shared_ptr<read_context> &rctx,
+               std::span<const std::byte> buf) -> void;
 };
 } // namespace echo
 #endif // ECHO_UDP_SERVER_HPP

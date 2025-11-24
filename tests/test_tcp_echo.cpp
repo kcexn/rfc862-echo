@@ -28,7 +28,7 @@ class TCPEchoServerTest : public ::testing::Test {};
 TEST_F(TCPEchoServerTest, StartTest)
 {
   using namespace io::socket;
-  using server = context_thread<tcp_server>;
+  using server = basic_context_thread<tcp_server>;
 
   auto service = server();
 
@@ -65,7 +65,7 @@ TEST_F(TCPEchoServerTest, ServerInitiatedSocketClose)
 {
   using namespace io::socket;
 
-  auto service = context_thread<tcp_server>();
+  auto service = basic_context_thread<tcp_server>();
 
   auto addr = socket_address<sockaddr_in>();
   addr->sin_family = AF_INET;

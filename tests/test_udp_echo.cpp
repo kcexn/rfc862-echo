@@ -29,7 +29,7 @@ TEST_F(UDPEchoServerTest, EchoTest)
 {
   using namespace io::socket;
 
-  auto service = context_thread<udp_server>();
+  auto service = basic_context_thread<udp_server>();
 
   auto addr = socket_address<sockaddr_in>();
   addr->sin_family = AF_INET;

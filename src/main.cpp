@@ -16,8 +16,8 @@
 using namespace net::service;
 using namespace echo;
 
-using tcp_echo_server = context_thread<tcp_server>;
-using udp_echo_server = context_thread<udp_server>;
+using tcp_echo_server = basic_context_thread<tcp_server>;
+using udp_echo_server = basic_context_thread<udp_server>;
 
 static constexpr unsigned short PORT = 7;
 static constexpr char const *const usage =
